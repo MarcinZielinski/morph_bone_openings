@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bone openings finder</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+</head>
+<body>
+{% load static %}
+<script>
+    $(document).ready(function () {
+        {#$('#uploadButton').click(upload);#}
+        $('#uploadForm').on('submit', upload);
+        {#$('#id_xRayImg').attr("disabled");#}
+        $('#inputFileId').on('change', fileChosen);
+    });
+
+    function fileChosen(e) {
+        const fileName = $('#inputFileId')[0].files[0].name;
+        $('#selectFileText')[0].innerHTML = fileName;
+        $('#messageSuccessBox').attr('hidden', true);
+        $('#messageErrorBox').attr('hidden', true);
+        $('#predict')[0].innerHTML = '';
+        $('#mask')[0].innerHTML = ''
+    }
+
+    function upload() {
+        const messageErrorBox = $('#messageErrorBox');
+        const messageSuccessBox = $('#messageSuccessBox');
+        messageErrorBox.attr('hidden', true);
+        messageSuccessBox.attr('hidden', true);
+
+        const uploadButton = $('#uploadButton');
+        uploadButton.attr('disabled', true);
+        uploadButton[0].innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span> Processing...';
+        const formData = new FormData(this);
+        $.ajax({
+            url: "/upload/",
+            method: "POST",
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (data) {
+                messageSuccessBox[0].innerHTML = 'Success! You can download photos <a href="/download/" target="_blank" class="alert-link">HERE!</a>';
+                messageSuccessBox.removeAttr('hidden');
+                $('#predict')[0].innerHTML = `<img src=${data.predict} alt='Prediction'>`;
+                $('#mask')[0].innerHTML = `<img src=${data.mask} alt='Mask'>`;
+                //Display response here
+                {#document.getElementById("fraction").innerHTML = "";#}
+            },
+            complete: function () {
+                //Hide spinner here
+                uploadButton.removeAttr('disabled');
+                uploadButton[0].innerHTML = 'Upload';
+            },
+            error: function (data) {
+                messageErrorBox.removeAttr('hidden')
+            }
+        });
+    }
+</script>
+
+<nav class="navbar navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">
+        <i class="fa fa-eye"></i> Bone morphology openings
+    </a>
+</nav>
+<div class="container">
+
+    <div class="jumbotron mt-5">
+        <div class="row">
+            <div class="col">
+                <h1 class="page-header" align="center">Bone morphology openings app</h1>
+                <hr class="my-4">
+                <form class="my-3 form-group" target="frame" id="uploadForm" enctype="multipart/form-data">
+                    <div class="my-3 custom-file" id="customFile" lang="en">
+                        <label id="selectFileText" class="custom-file-label" for="inputFileId">
+                            Select XRay photo...
+                        </label>
+                        <input accept="image/*" type="file" class="custom-file-input" id="inputFileId"
+                               aria-describedby="fileHelp" name="xRayImg" required>
+                    </div>
+                    <div align="center">
+                        <button style="min-width:20%" id="uploadButton" class="btn btn-success" type="submit"
+                                name="upload"
+                                value="Upload">
+                            Upload
+                        </button>
+                    </div>
+                </form>
+                <div id="messageErrorBox" class="alert alert-danger" role="alert" hidden>
+                    Something went wrong... Try again!
+                </div>
+                <div id="messageSuccessBox" class="alert alert-success" role="alert" hidden></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" align="right">
+                <div id="predict"></div>
+            </div>
+            <div class="col">
+                <div id="mask"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<iframe style="display: none" name="frame"></iframe>
+</body>
+</html>
