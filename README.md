@@ -8,7 +8,7 @@ To run:
 2. Execute below commands in project main folder:
 
 ```commandline
-pip3 install
+pip3 install -r requirements.txt
 python3 manage.py migrate
 python3 manage.py runserver
 ```
